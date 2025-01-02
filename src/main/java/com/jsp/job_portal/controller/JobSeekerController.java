@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.jsp.job_portal.dto.Education;
+import com.jsp.job_portal.dto.Experience;
 import com.jsp.job_portal.dto.Job;
 import com.jsp.job_portal.dto.JobSeeker;
-import com.jsp.job_portal.dto.Recruiter;
+import com.jsp.job_portal.helper.CloudinaryHelper;
 import com.jsp.job_portal.repository.JobRepository;
 import com.jsp.job_portal.service.JobSeekerService;
 
@@ -26,39 +29,40 @@ import jakarta.validation.Valid;
 
 public class JobSeekerController {
 	@Autowired
-	JobSeekerService seekerService; 
-
+	JobSeekerService seekerService;
+	
 	@Autowired
 	JobRepository jobRepository;
-	
-	
+
+	@Autowired
+	CloudinaryHelper cloudinaryHelper;
+
 	@GetMapping("/register")
-	public String loadRegister(JobSeeker jobSeeker,ModelMap map) {
-		return seekerService.register(jobSeeker,map);
+	public String loadRegister(JobSeeker jobSeeker, ModelMap map) {
+		return seekerService.register(jobSeeker, map);
 	}
-	
+
 	@PostMapping("/register")
-	public String register(@Valid JobSeeker jobSeeker,BindingResult result,HttpSession session) {
-		return seekerService.register(jobSeeker,result,session);
+	public String register(@Valid JobSeeker jobSeeker, BindingResult result, HttpSession session) {
+		return seekerService.register(jobSeeker, result, session);
 	}
-	
+
 	@GetMapping("/otp/{id}")
-	public String otp(@PathVariable("id") Integer id,ModelMap map,HttpSession session) {
+	public String otp(@PathVariable("id") Integer id, ModelMap map) {
 		map.put("id", id);
 		return "seeker-otp.html";
 	}
-	
+
 	@PostMapping("/otp")
-	public String otp(@RequestParam("otp") int otp,@RequestParam("id") int id, HttpSession session) {
-		return seekerService.otp(otp,id,session);
+	public String otp(@RequestParam("otp") int otp, @RequestParam("id") int id, HttpSession session) {
+		return seekerService.otp(otp, id, session);
 	}
-	
+
 	@GetMapping("/resend-otp/{id}")
-	public String resendOtp(@PathVariable("id") Integer id,HttpSession session) {
-		return seekerService.resendOtp(id,session);
+	public String resendOtp(@PathVariable("id") Integer id, HttpSession session) {
+		return seekerService.resendOtp(id, session);
 	}
-	
-	
+
 	@GetMapping("/home")
 	public String loadHome(HttpSession session) {
 		if (session.getAttribute("jobSeeker") != null) {
@@ -87,5 +91,38 @@ public class JobSeekerController {
 			return "redirect:/login";
 		}
 	}
-}
 
+	@GetMapping("/apply/{id}")
+	public String apply(@PathVariable("id") Integer id, HttpSession session) {
+		return seekerService.apply(id, session);
+	}
+	
+	@GetMapping("/complete-profile")
+	public String completeProfile(HttpSession session) {
+		if (session.getAttribute("jobSeeker") != null) {
+			return "complete-profile.html";
+		} else {
+			session.setAttribute("error", "Invalid Session, Login Again");
+			return "redirect:/login";
+		}
+	}
+
+	@PostMapping("/complete-profile")
+	public String completeProfile(@RequestParam MultipartFile resume, @RequestParam MultipartFile profilePic,Experience experience,Education education,HttpSession session) {
+		if (session.getAttribute("jobSeeker") != null) {
+			JobSeeker jobSeeker=(JobSeeker) session.getAttribute("jobSeeker");
+			jobSeeker.setEducation(education);
+			jobSeeker.setExperience(experience);
+			jobSeeker.setResumeUrl(cloudinaryHelper.savePdf(resume));
+			jobSeeker.setProfilePicUrl(cloudinaryHelper.saveImage(profilePic));
+			jobSeeker.setCompleted(true);
+			seekerService.save(jobSeeker);
+			return "redirect:/login";
+		} else {
+			session.setAttribute("error", "Invalid Session, Login Again");
+			return "redirect:/login";
+		}
+	}
+	
+	
+}
