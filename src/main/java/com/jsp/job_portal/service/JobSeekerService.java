@@ -1,5 +1,5 @@
-
 package com.jsp.job_portal.service;
+
 import java.util.List;
 import java.util.Random;
 
@@ -20,9 +20,8 @@ import com.jsp.job_portal.repository.RecruiterRepository;
 import jakarta.servlet.http.HttpSession;
 
 @Service
-
 public class JobSeekerService {
-	
+
 	@Autowired
 	JobSeekerRepository seekerRepository;
 
@@ -93,7 +92,7 @@ public class JobSeekerService {
 		if (session.getAttribute("jobSeeker") != null) {
 			Job job = jobRepository.findById(id).orElseThrow();
 			JobSeeker jobSeeker = (JobSeeker) session.getAttribute("jobSeeker");
-
+			if(jobSeeker.isCompleted()){
 			List<JobApplication> applications=jobSeeker.getJobApplications();
 			if(applications.isEmpty()){
 				JobApplication application=new JobApplication();
@@ -124,15 +123,15 @@ public class JobSeekerService {
 				session.setAttribute("success", "Applied Successfully");
 				return "redirect:/jobseeker/view-jobs";
 			}
+		}else{
+			session.setAttribute("error", "Please Complete Your Profile First");
+			return "redirect:/jobseeker/home";
 		}
-		else{
+		} else {
 			session.setAttribute("error", "Invalid Session, Login Again");
 			return "redirect:/login";
 		}
-    }
-	public void save(JobSeeker jobSeeker) {
-        throw new UnsupportedOperationException("Unimplemented method 'save'");
-    }
+	}
 
 
 }

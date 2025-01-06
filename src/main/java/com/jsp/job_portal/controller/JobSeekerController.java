@@ -19,6 +19,7 @@ import com.jsp.job_portal.dto.Job;
 import com.jsp.job_portal.dto.JobSeeker;
 import com.jsp.job_portal.helper.CloudinaryHelper;
 import com.jsp.job_portal.repository.JobRepository;
+import com.jsp.job_portal.repository.JobSeekerRepository;
 import com.jsp.job_portal.service.JobSeekerService;
 
 import jakarta.servlet.http.HttpSession;
@@ -26,16 +27,18 @@ import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/jobseeker")
-
 public class JobSeekerController {
 	@Autowired
 	JobSeekerService seekerService;
-	
+
 	@Autowired
-	JobRepository jobRepository;
+	JobSeekerRepository jobSeekerRepository;
 
 	@Autowired
 	CloudinaryHelper cloudinaryHelper;
+
+	@Autowired
+	JobRepository jobRepository;
 
 	@GetMapping("/register")
 	public String loadRegister(JobSeeker jobSeeker, ModelMap map) {
@@ -73,19 +76,19 @@ public class JobSeekerController {
 		}
 
 	}
-	
+
 	@GetMapping("/view-jobs")
-	public String viewAllJobs(HttpSession session,ModelMap map) {
+	public String viewAllJobs(HttpSession session, ModelMap map) {
 		if (session.getAttribute("jobSeeker") != null) {
-			List<Job> jobs=jobRepository.findByApprovedTrue();
-			if(jobs.isEmpty()) {
+			List<Job> jobs = jobRepository.findByApprovedTrue();
+			if (jobs.isEmpty()) {
 				session.setAttribute("error", "No Jobs Present Yet");
 				return "redirect:/jobseeker/home";
-			}else {
+			} else {
 				map.put("jobs", jobs);
 				return "jobseeker-jobs.html";
 			}
-			
+
 		} else {
 			session.setAttribute("error", "Invalid Session, Login Again");
 			return "redirect:/login";
@@ -96,7 +99,7 @@ public class JobSeekerController {
 	public String apply(@PathVariable("id") Integer id, HttpSession session) {
 		return seekerService.apply(id, session);
 	}
-	
+
 	@GetMapping("/complete-profile")
 	public String completeProfile(HttpSession session) {
 		if (session.getAttribute("jobSeeker") != null) {
@@ -108,21 +111,22 @@ public class JobSeekerController {
 	}
 
 	@PostMapping("/complete-profile")
-	public String completeProfile(@RequestParam MultipartFile resume, @RequestParam MultipartFile profilePic,Experience experience,Education education,HttpSession session) {
+	public String completeProfile(@RequestParam MultipartFile resume, @RequestParam MultipartFile profilePic,
+			Experience experience, Education education, HttpSession session) {
 		if (session.getAttribute("jobSeeker") != null) {
-			JobSeeker jobSeeker=(JobSeeker) session.getAttribute("jobSeeker");
+			JobSeeker jobSeeker = (JobSeeker) session.getAttribute("jobSeeker");
 			jobSeeker.setEducation(education);
 			jobSeeker.setExperience(experience);
 			jobSeeker.setResumeUrl(cloudinaryHelper.savePdf(resume));
 			jobSeeker.setProfilePicUrl(cloudinaryHelper.saveImage(profilePic));
 			jobSeeker.setCompleted(true);
-			seekerService.save(jobSeeker);
-			return "redirect:/login";
+			jobSeekerRepository.save(jobSeeker);
+			session.setAttribute("success", "Profile Completed, You can Apply for Jobs Now");
+			return "redirect:/jobseeker/home";
 		} else {
 			session.setAttribute("error", "Invalid Session, Login Again");
 			return "redirect:/login";
 		}
 	}
-	
-	
+
 }

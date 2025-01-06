@@ -1,6 +1,5 @@
 package com.jsp.job_portal.controller;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import com.jsp.job_portal.service.RecruiterService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-
 @Controller
 @RequestMapping("/recruiter")
 public class RecruiterController {
@@ -37,27 +35,28 @@ public class RecruiterController {
 		map.put("recruiter", recruiter);
 		return "recruiter-register.html";
 	}
-	
+
 	@PostMapping("/register")
-	public String register(@Valid Recruiter recruiter, BindingResult result,HttpSession session) {
-		return recruiterService.register(recruiter,result,session);
+	public String register(@Valid Recruiter recruiter, BindingResult result, HttpSession session) {
+		return recruiterService.register(recruiter, result, session);
 	}
-	
+
 	@GetMapping("/otp/{id}")
-	public String loadOtp(ModelMap map,@PathVariable("id") int id) {
+	public String loadOtp(ModelMap map, @PathVariable("id") int id) {
 		map.put("id", id);
 		return "recruiter-otp.html";
 	}
-	
+
 	@PostMapping("/otp")
-	public String otp(@RequestParam("id") int id,@RequestParam("otp") int otp,HttpSession session) {
-		return recruiterService.otp(id,otp,session);
+	public String otp(@RequestParam("id") int id, @RequestParam("otp") int otp, HttpSession session) {
+		return recruiterService.otp(id, otp, session);
 	}
-	
+
 	@GetMapping("/resend-otp/{id}")
-	public String resendOtp(@PathVariable("id") int id,HttpSession session) {
-		return recruiterService.resendOtp(id,session);
+	public String resendOtp(@PathVariable("id") int id, HttpSession session) {
+		return recruiterService.resendOtp(id, session);
 	}
+
 	@GetMapping("/home")
 	public String loadHome(HttpSession session) {
 		if (session.getAttribute("recruiter") != null) {
@@ -67,7 +66,7 @@ public class RecruiterController {
 			return "redirect:/login";
 		}
 	}
-	
+
 	@GetMapping("/post-job")
 	public String loadPostJob(HttpSession session) {
 		if (session.getAttribute("recruiter") != null) {
@@ -91,14 +90,14 @@ public class RecruiterController {
 			return "redirect:/login";
 		}
 	}
-
+	
 	@GetMapping("/manage-jobs")
 	public String manageJob(HttpSession session,ModelMap map) {
 		if (session.getAttribute("recruiter") != null) {
 			Recruiter recruiter=(Recruiter) session.getAttribute("recruiter");
 			List<Job> jobs=jobRepository.findByRecruiter(recruiter);
 			if(jobs.isEmpty()) {
-				session.setAttribute("failure", "No Jobs Added Yet");
+				session.setAttribute("error", "No Jobs Added Yet");
 				return "redirect:/recruiter/home";
 			}else {
 				map.put("jobs", jobs);
@@ -121,5 +120,30 @@ public class RecruiterController {
 			return "redirect:/login";
 		}
 	}
-}
 
+	@GetMapping("/edit-job/{id}")
+	public String editJob(@PathVariable("id") int id,ModelMap map,HttpSession session) {
+		if (session.getAttribute("recruiter") != null) {
+			Job job=jobRepository.findById(id).get();
+			map.put("job", job);
+			return "edit-job.html";
+		} else {
+			session.setAttribute("error", "Invalid Session, Login Again");
+			return "redirect:/login";
+		}
+	}
+
+	@PostMapping("/update-job")
+	public String updateJob(Job job, HttpSession session) {
+		if (session.getAttribute("recruiter") != null) {
+			Recruiter recruiter = (Recruiter) session.getAttribute("recruiter");
+			job.setRecruiter(recruiter);
+			jobRepository.save(job);
+			session.setAttribute("success", "Job Updated Success");
+			return "redirect:/recruiter/manage-jobs";
+		} else {
+			session.setAttribute("error", "Invalid Session, Login Again");
+			return "redirect:/login";
+		}
+	}
+}

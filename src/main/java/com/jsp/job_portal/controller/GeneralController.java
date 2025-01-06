@@ -1,5 +1,8 @@
 package com.jsp.job_portal.controller;
 
+import java.util.HashSet;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -18,9 +21,6 @@ import com.jsp.job_portal.repository.JobSeekerRepository;
 import com.jsp.job_portal.repository.RecruiterRepository;
 
 import jakarta.servlet.http.HttpSession;
-import java.util.HashSet;
-import java.util.List;
-
 
 @Controller
 public class GeneralController {
@@ -47,11 +47,6 @@ public class GeneralController {
 	@GetMapping("/about-us")
 	public String loadAbout() {
 		return "about-us.html";
-	}
-
-	@GetMapping("/contact")
-	public String contact() {
-		return "contact.html";
 	}
 
 	@GetMapping("/privacy-policy")
@@ -214,36 +209,4 @@ public class GeneralController {
 		}
 
 	}
-	
-}		
-
-// @GetMapping("/reset-password")
-// public String loadResetPassword(@RequestParam("token") String token, HttpSession session) {
-// 	boolean isValid =service.validatePasswordResetToken(token);
-// 	if (!isValid) {
-// 		session.setAttribute("message", "Invalid or expired password reset token.");
-// 		return "redirect:/forgot-password";
-// 	}
-// 	session.setAttribute("token", token);
-// 	return "reset-password.html";
-// }
-
-// @PostMapping("/reset-password")
-// public String resetPassword(@RequestParam("password") String password,
-// 							@RequestParam("confirmPassword") String confirmPassword,
-// 							HttpSession session) {
-// 	String token = (String) session.getAttribute("token");
-// 	if (token == null) {
-// 		session.setAttribute("message", "Invalid session. Please try resetting your password again.");
-// 		return "redirect:/forgot-password";
-// 	}
-// 	if (!password.equals(confirmPassword)) {
-// 		session.setAttribute("message", "Passwords do not match.");
-// 		return "redirect:/reset-password?token=" + token;
-// 	}
-// 	return service.resetPassword(token, password, session);
-// }
-// }
-
-
-
+}
