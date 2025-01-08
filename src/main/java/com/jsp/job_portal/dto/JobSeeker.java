@@ -3,9 +3,9 @@ package com.jsp.job_portal.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Autowired;
 
-import com.jsp.job_portal.repository.JobRepository;
+// import com.jsp.job_portal.repository.JobRepository;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
