@@ -28,7 +28,6 @@ import jakarta.validation.Valid;
 @RequestMapping("/recruiter")
 public class RecruiterController {
 
-	
 	@Autowired
 	RecruiterService recruiterService;
 
@@ -157,6 +156,7 @@ public class RecruiterController {
 			return "redirect:/login";
 		}
 	}
+
 	@GetMapping("/view-applicaitions")
 	public String viewApplications(HttpSession session,ModelMap map) {
 		if (session.getAttribute("recruiter") != null) {
@@ -174,10 +174,12 @@ public class RecruiterController {
 	public String viewAppliedCandidates(@PathVariable("id") int id,ModelMap map,HttpSession session) {
 		if (session.getAttribute("recruiter") != null) {
 			Job job=jobRepository.findById(id).get();
-			List<JobApplication> applications=applicationRepository.findByJob(job);
-
+			List<JobApplication> applications=applicationRepository.findByJob(job);			
 			List<JobSeeker> appliers=jobSeekerRepository.findByJobApplicationsIn(applications);
+			
+			map.put("applications", applications);
 			map.put("appliers", appliers);
+			map.put("job", job);
 			return "recruiter-applied-candidates.html";
 		}
 		else {
@@ -185,4 +187,21 @@ public class RecruiterController {
 			return "redirect:/login";
 		}
 	}
+
+	@PostMapping("/update-status/{id}")
+	public String updateStatus(@PathVariable("id") int id,@RequestParam String status,HttpSession session) {
+		if (session.getAttribute("recruiter") != null) {
+			JobApplication application=applicationRepository.findById(id).get();
+			application.setStatus(status);
+
+			applicationRepository.save(application);
+			session.setAttribute("success", "Status Updated Success");
+			return "redirect:/recruiter/view-applicaitions";
+		}
+			else {
+			session.setAttribute("error", "Invalid Session, Login Again");
+			return "redirect:/login";
+		}
+}
+
 }
